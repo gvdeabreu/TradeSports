@@ -1,10 +1,11 @@
 // models/Usuario.js
 
 const fs = require('fs');
-const path = require('path');
 const bcrypt = require('bcrypt');
 
-const usuariosPath = path.join(__dirname, '../data/usuarios.json');
+const { getDataFilePath } = require('./dataPaths');
+
+const usuariosPath = getDataFilePath('usuarios.json');
 
 function lerUsuarios() {
   try {

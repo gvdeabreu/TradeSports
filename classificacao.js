@@ -8,19 +8,19 @@ const express = require('express');
 const router = express.Router();
 const axios = require('axios');
 const fs = require('fs');
-const path = require('path');
+const { getDataFilePath } = require('./dataPaths');
 
 // Caminhos para arquivos locais
-const clubesPath = path.join(__dirname, '..', 'data', 'clubes.json');
-const classificacaoFinalPath = path.join(__dirname, '..', 'data', 'classificacaoFinal.json');
+const clubesPath = getDataFilePath('clubes.json');
+const classificacaoFinalPath = getDataFilePath('classificacaoFinal.json');
 
-// ===================== DIVIDENDOS (TOP 4 estável por 4 rodadas) =====================
+// ===================== DIVIDENDOS (TOP 4 estável por 3 rodadas) =====================
 // Obs: o projeto está usando JSON (não Mongo) no momento.
-const configCampeonatoPath = path.join(__dirname, '..', 'data', 'configCampeonato.json');
-const top4RodadaPath = path.join(__dirname, '..', 'data', 'top4Rodadas.json');
-const historicoPossePath = path.join(__dirname, '..', 'data', 'historicoPosse.json');
-const usuariosPath = path.join(__dirname, '..', 'data', 'usuarios.json');
-const investimentosPath = path.join(__dirname, '..', 'data', 'investimentos.json');
+const configCampeonatoPath = getDataFilePath('configCampeonato.json');
+const top4RodadaPath = getDataFilePath('top4Rodadas.json');
+const historicoPossePath = getDataFilePath('historicoPosse.json');
+const usuariosPath = getDataFilePath('usuarios.json');
+const investimentosPath = getDataFilePath('investimentos.json');
 
 function lerJSONSeguroAbs(p, fallback) {
   try {
@@ -153,7 +153,7 @@ function distribuirDividendosSeElegivel(rodadaAtual) {
   garantirArquivo(investimentosPath, []);
 
   const config = lerJSONSeguroAbs(configCampeonatoPath, {});
-  const ciclos = Number(config?.dividendos?.ciclosMinimos || 4);
+  const ciclos = Number(config?.dividendos?.ciclosMinimos || 3);
   const taxas = config?.dividendos?.taxasPorPosicao || {
     1: 0.025,
     2: 0.018,
@@ -166,7 +166,7 @@ function distribuirDividendosSeElegivel(rodadaAtual) {
   const r0 = Number(rodadaAtual);
   const rodadas = [r0 - (ciclos - 1), r0 - (ciclos - 2), r0 - 1, r0];
 
-  // precisa ter snapshot top4 das 4 rodadas
+  // precisa ter snapshot top4 das rodadas mínimas configuradas
   for (const r of rodadas) {
     const t = obterTop4DaRodada(r);
     if (!t || t.length < 4) return;
@@ -183,7 +183,7 @@ function distribuirDividendosSeElegivel(rodadaAtual) {
     const pos = Number(item.posicao);
     if (pos < 1 || pos > 4) continue;
 
-    // verifica estabilidade do mesmo clube na mesma posição nas 4 rodadas
+    // verifica estabilidade do mesmo clube na mesma posição no ciclo
     const clubeId = Number(item.clubeId);
     let estavel = true;
     for (const r of rodadas) {
@@ -208,7 +208,7 @@ function distribuirDividendosSeElegivel(rodadaAtual) {
       const uid = u?.id;
       if (!uid) continue;
 
-      // min de posse nas 4 rodadas
+      // min de posse no ciclo
       const posses = rodadas.map((r) => obterPosse(uid, clubeId, r));
       const qtdElegivel = Math.min(...posses);
       if (!Number.isFinite(qtdElegivel) || qtdElegivel <= 0) continue;
@@ -351,7 +351,7 @@ router.get('/tabela-brasileirao', async (req, res) => {
       liquidado: false,
       rodadaAtual: rodadaApi,
       dividendos: {
-        ciclosMinimos: 4,
+        ciclosMinimos: 3,
         taxasPorPosicao: { 1: 0.025, 2: 0.018, 3: 0.013, 4: 0.009 },
       },
       ultimaRodadaProcessadaDividendos: 0,

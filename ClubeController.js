@@ -1,8 +1,8 @@
 const fs = require('fs');
-const path = require('path');
 const axios = require('axios');
+const { getDataFilePath } = require('./dataPaths');
 
-const clubesPath = path.join(__dirname, '../public/data/clubes.json'); // Caminho para clubes.json
+const clubesPath = getDataFilePath('clubes.json'); // Caminho padrão para clubes.json
 const API_KEY = process.env.API_FOOTBALL_KEY;
 const API_BASE = 'https://v3.football.api-sports.io';
 const ID_BRASILEIRAO = 140;
@@ -110,15 +110,22 @@ const ClubeController = {
         }
 
         const precoIPO = parseFloat((BASE * Math.pow(MULTIPLICADOR, 20 - posicao)).toFixed(2));
+        const proximoId = clubesExistentes.reduce((maxId, c) => {
+          const atual = Number(c.id);
+          return Number.isFinite(atual) ? Math.max(maxId, atual) : maxId;
+        }, 0) + 1;
 
         const novoClube = {
-          id: Number(entry.team.id),
+          id: proximoId, // ID interno estável (nunca usar API-Football como ID interno)
+          apiFootballTeamId: Number(entry.team.id),
           nome: nomeApi,
           nomeApi: nomeApi,
           escudo: entry.team.logo,
           posicao,
           preco: precoIPO,
-          precoAtual: precoIPO
+          precoAtual: precoIPO,
+          cotasDisponiveis: 1000,
+          ipoEncerrado: false
         };
 
         clubesExistentes.push(novoClube);

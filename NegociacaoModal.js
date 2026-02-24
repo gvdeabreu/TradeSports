@@ -92,7 +92,6 @@ useEffect(() => {
 
   useEffect(() => {
     if (isOpen && clube?.id) {
-      if (!token || !verificarTokenValido(token)) return;
       carregarOrdens();
       verificarIPO();
     }
@@ -112,8 +111,8 @@ useEffect(() => {
   const carregarOrdens = async () => {
     try {
       const clubeId = clube._id || clube?.id;
-      const headers = { authorization: `Bearer ${token}` };
-      const { data } = await axios.get(`http://localhost:4001/mercado/livro?clubeId=${clubeId}`, { headers });
+      const headers = token ? { authorization: `Bearer ${token}` } : undefined;
+      const { data } = await axios.get(`http://localhost:4001/mercado/livro?clubeId=${clubeId}`, headers ? { headers } : undefined);
       setOrdensCompra(data.compras || []);
       setOrdensVenda(data.vendas || []);
     } catch (err) {

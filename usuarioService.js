@@ -1,6 +1,6 @@
 const fs = require('fs');
-const path = require('path');
-const caminho = path.join(__dirname, '../data/usuarios.json');
+const { getDataFilePath } = require('./dataPaths');
+const caminho = getDataFilePath('usuarios.json');
 
 function buscarUsuarioPorId(id) {
   const usuarios = JSON.parse(fs.readFileSync(caminho, 'utf-8'));

@@ -1,8 +1,6 @@
 // routes/clube.js
 const express = require('express');
 const router = express.Router();
-const fs = require('fs');
-const path = require('path');
 
 // Mantém o fluxo de IPO já existente
 let comprarCota;
@@ -13,15 +11,14 @@ try {
   comprarCota = null;
 }
 
-const clubesPath = path.join(__dirname, '../data/clubes.json');
-const investimentosPath = path.join(__dirname, '../data/investimentos.json');
+const auth = require('../middleware/auth');
+const { readJson } = require('../dataPaths');
 
-function lerJSON(p, fallback) {
-  try {
-    return JSON.parse(fs.readFileSync(p, 'utf8'));
-  } catch (e) {
-    return fallback;
-  }
+const CLUBES_FILE = 'clubes.json';
+const INVESTIMENTOS_FILE = 'investimentos.json';
+
+function lerJSON(fileName, fallback) {
+  return readJson(fileName, fallback);
 }
 
 function toMs(d) {
@@ -49,18 +46,19 @@ function normalizarPontos(trades, fallbackPreco) {
 }
 
 // POST /clube/:id/comprar  (IPO)
-router.post('/:id/comprar', (req, res) => {
+router.post('/:id/comprar', auth, (req, res) => {
   if (!comprarCota) {
     return res.status(500).json({ erro: 'Controller de IPO não encontrado.' });
   }
   req.body.clubeId = req.params.id;
+  req.body.usuarioId = req.usuario.id;
   return comprarCota(req, res);
 });
 
 // GET /clube/clubes   (lista, com filtro ?id=)
 router.get('/clubes', (req, res) => {
   try {
-    let clubes = lerJSON(clubesPath, []);
+    let clubes = lerJSON(CLUBES_FILE, []);
     if (req.query.id) {
       const id = Number(req.query.id);
       clubes = clubes.filter(c => Number(c.id) === id);
@@ -75,7 +73,7 @@ router.get('/clubes', (req, res) => {
 // GET /clube/:id  (detalhes do clube)
 router.get('/:id', (req, res) => {
   const id = Number(req.params.id);
-  const clubes = lerJSON(clubesPath, []);
+  const clubes = lerJSON(CLUBES_FILE, []);
   const clube = clubes.find(c => Number(c.id) === id);
   if (!clube) return res.status(404).json({ erro: 'Clube não encontrado.' });
   return res.json(clube);
@@ -91,11 +89,11 @@ router.get('/:id/historico-precos', (req, res) => {
   const range = req.query.range || '7D';
   const durMs = rangeToMs(range);
 
-  const clubes = lerJSON(clubesPath, []);
+  const clubes = lerJSON(CLUBES_FILE, []);
   const clube = clubes.find(c => Number(c.id) === clubeId);
   if (!clube) return res.status(404).json({ erro: 'Clube não encontrado.' });
 
-  const investimentos = lerJSON(investimentosPath, []);
+  const investimentos = lerJSON(INVESTIMENTOS_FILE, []);
 
   // Mercado secundário: usamos COMPRA como “trade canônico” (evita duplicar por ter VENDA espelhada)
   const tradesAll = investimentos

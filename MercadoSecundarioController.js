@@ -1,11 +1,11 @@
 // controllers/MercadoSecundarioController.js
 const fs = require('fs');
-const path = require('path');
+const { getDataFilePath } = require('./dataPaths');
 
-const ordensPath = path.join(__dirname, '../data/ordens.json');
-const usuariosPath = path.join(__dirname, '../data/usuarios.json');
-const investimentosPath = path.join(__dirname, '../data/investimentos.json');
-const clubesPath = path.join(__dirname, '../data/clubes.json'); // <-- para travar mercado
+const ordensPath = getDataFilePath('ordens.json');
+const usuariosPath = getDataFilePath('usuarios.json');
+const investimentosPath = getDataFilePath('investimentos.json');
+const clubesPath = getDataFilePath('clubes.json'); // <-- para travar mercado
 
 function lerJSON(p) { return fs.existsSync(p) ? JSON.parse(fs.readFileSync(p, 'utf-8')) : []; }
 function salvarJSON(p, d) { fs.writeFileSync(p, JSON.stringify(d, null, 2)); }

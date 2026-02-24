@@ -6,7 +6,7 @@
   "rodadaAtual": 38,
   "ultimaRodadaProcessadaDividendos": 38,
   "dividendos": {
-    "ciclosMinimos": 4,
+    "ciclosMinimos": 3,
     "taxasPorPosicao": {
       "1": 0.025,
       "2": 0.018,

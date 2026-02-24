@@ -1,30 +1,25 @@
 // routes/mercado.js
 const express = require('express');
-const fs = require('fs');
-const path = require('path');
 const router = express.Router();
 const auth = require('../middleware/auth');
+const { readJson, writeJson } = require('../dataPaths');
 
-const ordensPath        = path.join(__dirname, '../data/ordens.json');
-const clubesPath        = path.join(__dirname, '../data/clubes.json');
-const usuariosPath      = path.join(__dirname, '../data/usuarios.json');
-const investimentosPath = path.join(__dirname, '../data/investimentos.json');
+const ORDENS_FILE = 'ordens.json';
+const CLUBES_FILE = 'clubes.json';
+const USUARIOS_FILE = 'usuarios.json';
+const INVESTIMENTOS_FILE = 'investimentos.json';
 
 function lerJSON(p) {
-  try {
-    return JSON.parse(fs.readFileSync(p, 'utf8'));
-  } catch (e) {
-    return [];
-  }
+  return readJson(p, []);
 }
 
 function salvarJSON(p, data) {
-  fs.writeFileSync(p, JSON.stringify(data, null, 2), 'utf8');
+  writeJson(p, data);
 }
 
 // checa se o IPO terminou para esse clube
 function ipoEncerrado(clubeId) {
-  const clubes = lerJSON(clubesPath);
+  const clubes = lerJSON(CLUBES_FILE);
   const clube  = clubes.find(c => String(c.id) === String(clubeId));
   return !!(clube && (clube.ipoEncerrado || Number(clube.cotasDisponiveis) === 0));
 }
@@ -32,11 +27,11 @@ function ipoEncerrado(clubeId) {
 // ---------------------------------------------------------------------
 // GET /mercado/livro?clubeId=123  -> book de compras/vendas
 // ---------------------------------------------------------------------
-router.get('/livro', auth, (req, res) => {
+router.get('/livro', (req, res) => {
   const { clubeId } = req.query;
   if (!clubeId) return res.status(400).json({ erro: 'clubeId é obrigatório' });
 
-  const ordens = lerJSON(ordensPath);
+  const ordens = lerJSON(ORDENS_FILE);
 
   const compras = ordens
     .filter(o => String(o.clubeId) === String(clubeId) && o.tipo === 'compra' && o.restante > 0)
@@ -52,11 +47,11 @@ router.get('/livro', auth, (req, res) => {
 // ---------------------------------------------------------------------
 // GET /mercado/ofertas?clubeId=123  -> apenas ofertas de venda (legado)
 // ---------------------------------------------------------------------
-router.get('/ofertas', auth, (req, res) => {
+router.get('/ofertas', (req, res) => {
   const { clubeId } = req.query;
   if (!clubeId) return res.status(400).json({ erro: 'clubeId é obrigatório' });
 
-  const ordens = lerJSON(ordensPath)
+  const ordens = lerJSON(ORDENS_FILE)
     .filter(o => String(o.clubeId) === String(clubeId) && o.tipo === 'venda' && o.restante > 0)
     .sort((a, b) => a.preco - b.preco || a.criadoEm - b.criadoEm);
 
@@ -86,7 +81,7 @@ router.post('/ordem', auth, (req, res) => {
     return res.status(400).json({ erro: 'quantidade/preço inválidos' });
   }
 
-  const usuarios = lerJSON(usuariosPath);
+  const usuarios = lerJSON(USUARIOS_FILE);
   const idxUsuario = usuarios.findIndex(u => String(u.id) === String(usuario.id));
 
   if (idxUsuario < 0) {
@@ -117,7 +112,7 @@ router.post('/ordem', auth, (req, res) => {
     criadoEm: agora,
   };
 
-  const ordens = lerJSON(ordensPath);
+  const ordens = lerJSON(ORDENS_FILE);
   ordens.push(novaOrdem);
 
   // ------------------------ MATCHING / EXECUÇÃO ----------------------
@@ -126,8 +121,8 @@ router.post('/ordem', auth, (req, res) => {
     let houveNegocio = false;
     let ultimoPrecoNegociado = null;
 
-    const investimentos = lerJSON(investimentosPath);
-    const clubes = lerJSON(clubesPath);
+    const investimentos = lerJSON(INVESTIMENTOS_FILE);
+    const clubes = lerJSON(CLUBES_FILE);
     const clubeInfo = clubes.find(c => String(c.id) === String(clubeId));
     const clubeNome = clubeInfo?.nome || '';
 
@@ -152,7 +147,7 @@ router.post('/ordem', auth, (req, res) => {
       const exec = Math.min(novaOrdem.restante, o.restante);
       if (exec <= 0) continue;
 
-      const users = lerJSON(usuariosPath);
+      const users = lerJSON(USUARIOS_FILE);
 
       const buyerId  = tipo === 'compra' ? usuario.id : o.usuarioId;
       const sellerId = tipo === 'venda' ? usuario.id : o.usuarioId;
@@ -202,7 +197,7 @@ router.post('/ordem', auth, (req, res) => {
         }
       }
 
-      salvarJSON(usuariosPath, users);
+      salvarJSON(USUARIOS_FILE, users);
 
       // atualiza ordens
       novaOrdem.restante -= exec;
@@ -238,20 +233,20 @@ router.post('/ordem', auth, (req, res) => {
         }
       );
 
-      salvarJSON(ordensPath, ordens);
+      salvarJSON(ORDENS_FILE, ordens);
     }
 
     if (houveNegocio) {
       // grava histórico
-      salvarJSON(investimentosPath, investimentos);
+      salvarJSON(INVESTIMENTOS_FILE, investimentos);
 
       // atualiza preço de mercado (precoAtual) no clubes.json
       if (ultimoPrecoNegociado != null && clubeInfo) {
-        const clubesAtual = lerJSON(clubesPath);
+        const clubesAtual = lerJSON(CLUBES_FILE);
         const idxClube = clubesAtual.findIndex(c => String(c.id) === String(clubeId));
         if (idxClube >= 0) {
           clubesAtual[idxClube].precoAtual = ultimoPrecoNegociado;
-          salvarJSON(clubesPath, clubesAtual);
+          salvarJSON(CLUBES_FILE, clubesAtual);
         }
       }
     }
@@ -260,7 +255,7 @@ router.post('/ordem', auth, (req, res) => {
   }
 
   casar();
-  salvarJSON(ordensPath, ordens);
+  salvarJSON(ORDENS_FILE, ordens);
 
   return res.json({ ok: true, ordem: novaOrdem });
 });
@@ -275,7 +270,7 @@ router.post('/ordem/cancelar', auth, (req, res) => {
       return res.status(400).json({ erro: 'ordemId é obrigatório.' });
     }
 
-    const ordens = lerJSON(ordensPath);
+    const ordens = lerJSON(ORDENS_FILE);
     const index = ordens.findIndex(o => o.id === ordemId);
 
     if (index === -1) {
@@ -294,7 +289,7 @@ router.post('/ordem/cancelar', auth, (req, res) => {
       canceladaEm: Date.now(),
     };
 
-    salvarJSON(ordensPath, ordens);
+    salvarJSON(ORDENS_FILE, ordens);
     return res.json(ordens[index]);
   } catch (err) {
     console.error('Erro ao cancelar ordem:', err);
@@ -307,7 +302,7 @@ router.post('/ordem/cancelar', auth, (req, res) => {
 // ---------------------------------------------------------------------
 router.get('/minhas-ordens', auth, (req, res) => {
   const uid = String(req.usuario.id);
-  const ordens = lerJSON(ordensPath)
+  const ordens = lerJSON(ORDENS_FILE)
     .filter(o => String(o.usuarioId) === uid && o.restante > 0)
     .sort((a, b) => b.criadoEm - a.criadoEm);
 
@@ -322,7 +317,7 @@ router.get('/historico-precos/:clubeId', (req, res) => {
     const clubeId = Number(req.params.clubeId);
     if (!clubeId) return res.status(400).json({ error: 'clubeId inválido' });
 
-    const investimentos = lerJSON(investimentosPath, []);
+    const investimentos = lerJSON(INVESTIMENTOS_FILE);
     const serie = investimentos
       .filter((t) => Number(t.clubeId) === clubeId)
       .filter((t) => {
