@@ -1,10 +1,11 @@
 const express = require('express');
 const fs = require('fs');
-const path = require('path');
 const router = express.Router();
 const auth = require('../middleware/auth');
 
-const ordensPath = path.join(__dirname, '../data/ordens.json');
+const { getDataFilePath } = require('./dataPaths');
+
+const ordensPath = getDataFilePath('ordens.json');
 
 // Função para ler o arquivo de ordens
 function lerOrdens() {

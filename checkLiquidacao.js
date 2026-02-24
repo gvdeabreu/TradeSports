@@ -1,13 +1,13 @@
 // middleware/checkLiquidacao.js
 const fs = require('fs');
-const path = require('path');
+const { getDataFilePath } = require('./dataPaths');
 
 // Caminhos dos arquivos JSON principais
-const configPath        = path.join(__dirname, '..', 'data', 'configCampeonato.json');
-const usuariosPath      = path.join(__dirname, '..', 'data', 'usuarios.json');
-const clubesPath        = path.join(__dirname, '..', 'data', 'clubes.json');
-const investimentosPath = path.join(__dirname, '..', 'data', 'investimentos.json');
-const classificacaoPath = path.join(__dirname, '..', 'data', 'classificacaoFinal.json'); // NOVO
+const configPath        = getDataFilePath('configCampeonato.json');
+const usuariosPath      = getDataFilePath('usuarios.json');
+const clubesPath        = getDataFilePath('clubes.json');
+const investimentosPath = getDataFilePath('investimentos.json');
+const classificacaoPath = getDataFilePath('classificacaoFinal.json'); // NOVO
 
 function lerJSON(p, fallback) {
   try {

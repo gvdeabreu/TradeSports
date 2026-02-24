@@ -454,6 +454,14 @@ function CarteiraPage() {
     return (historicoOrdenado || []).slice(start, end);
   }, [historicoOrdenado, paginaHistorico, itensPorPaginaHistorico]);
 
+  const historicoDividendos = useMemo(() => {
+    return historicoOrdenado.filter((op) => String(op.tipo || '').toUpperCase().startsWith('DIV'));
+  }, [historicoOrdenado]);
+
+  const historicoLiquidacoes = useMemo(() => {
+    return historicoOrdenado.filter((op) => String(op.tipo || '').toUpperCase().includes('LIQUIDA'));
+  }, [historicoOrdenado]);
+
   return (
     <>
       {modalAberto && clubeSelecionado && (
@@ -763,6 +771,35 @@ function CarteiraPage() {
           </>
         )}
 
+
+        <BlocoHistorico>
+          <h2>Histórico de Dividendos</h2>
+          {historicoDividendos.length === 0 ? (
+            <p>Nenhum dividendo recebido até o momento.</p>
+          ) : (
+            <ul>
+              {historicoDividendos.slice(0, 20).map((item, idx) => (
+                <li key={`div-${idx}`}>
+                  {new Date(item.data).toLocaleString('pt-BR')} • {item.clubeNome || `Clube ${item.clubeId}`} • R$ {Number(item.totalPago || 0).toFixed(2)}
+                </li>
+              ))}
+            </ul>
+          )}
+
+          <h2 style={{ marginTop: '1rem' }}>Histórico de Liquidação Final</h2>
+          {historicoLiquidacoes.length === 0 ? (
+            <p>Nenhuma liquidação registrada até o momento.</p>
+          ) : (
+            <ul>
+              {historicoLiquidacoes.slice(0, 20).map((item, idx) => (
+                <li key={`liq-${idx}`}>
+                  {new Date(item.data).toLocaleString('pt-BR')} • {item.clubeNome || `Clube ${item.clubeId}`} • R$ {Number(item.totalPago || 0).toFixed(2)}
+                </li>
+              ))}
+            </ul>
+          )}
+        </BlocoHistorico>
+
       </Container>
     </>
   );
@@ -903,6 +940,30 @@ function GraficoLinhaCarteira({ pontos }) {
 const Container = styled.div`
   padding: 2rem;
   color: white;
+`;
+
+
+const BlocoHistorico = styled.div`
+  margin-top: 1.5rem;
+  background-color: #0f172a;
+  border: 1px solid #1f2937;
+  border-radius: 8px;
+  padding: 1rem;
+
+  h2 {
+    margin: 0 0 0.5rem;
+    font-size: 1rem;
+  }
+
+  ul {
+    margin: 0;
+    padding-left: 1.2rem;
+  }
+
+  li {
+    margin: 0.35rem 0;
+    color: #cbd5e1;
+  }
 `;
 
 const Resumo = styled.div`

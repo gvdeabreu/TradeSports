@@ -7,15 +7,15 @@ const Liquidacao = require('../models/Liquidacao');
 const Usuario = require('../models/Usuario'); // ✅ Import necessário
 const jwt = require('jsonwebtoken');
 const fs = require('fs');
-const path = require('path');
+const { getDataFilePath } = require('./dataPaths');
 
 // caminhos dos arquivos de dados
-const invPath = path.join(__dirname, '../data/investimentos.json');
-const usuariosPath = path.join(__dirname, '../data/usuarios.json');
+const invPath = getDataFilePath('investimentos.json');
+const usuariosPath = getDataFilePath('usuarios.json');
 
 function lerJSONSeguro(relPath, fallback = []) {
   try {
-    const p = path.join(__dirname, '..', relPath);
+    const p = getDataFilePath(relPath);
     return JSON.parse(fs.readFileSync(p, 'utf8'));
   } catch (e) {
     return fallback;
@@ -154,7 +154,7 @@ router.get('/carteira', auth, async (req, res) => {
     if (!usuario) {
       return res.status(404).json({ erro: 'Usuário não encontrado' });
     }
-    const clubesPath = path.join(__dirname, '..', 'data', 'clubes.json');
+    const clubesPath = getDataFilePath('clubes.json');
     const clubesData = JSON.parse(fs.readFileSync(clubesPath, 'utf8') || '[]');
     const carteiraUsuario = Array.isArray(usuario.carteira)
       ? usuario.carteira

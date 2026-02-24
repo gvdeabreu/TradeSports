@@ -8,13 +8,13 @@ const InvestimentoController = require('../controllers/InvestimentoController');
 const { liquidarBrasileirao } = require('../middleware/checkLiquidacao');
 
 const fs = require('fs');
-const path = require('path');
 const axios = require('axios');
+const { getDataFilePath } = require('./dataPaths');
 
 // ---- caminhos dos JSONs principais ----
-const usuariosPath      = path.join(__dirname, '../data/usuarios.json');
-const clubesPath        = path.join(__dirname, '../data/clubes.json');
-const investimentosPath = path.join(__dirname, '../data/investimentos.json');
+const usuariosPath      = getDataFilePath('usuarios.json');
+const clubesPath        = getDataFilePath('clubes.json');
+const investimentosPath = getDataFilePath('investimentos.json');
 
 // helpers genéricos
 function lerJSON(p, fallback = []) {
