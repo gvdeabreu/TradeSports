@@ -1,0 +1,65 @@
+[
+  {
+    "usuarioId": 1,
+    "clubeId": 19,
+    "rodada": 38,
+    "quantidade": 49,
+    "data": "2025-12-18T16:00:50.660Z"
+  },
+  {
+    "usuarioId": 1,
+    "clubeId": 127,
+    "rodada": 38,
+    "quantidade": 40,
+    "data": "2025-12-18T16:00:50.660Z"
+  },
+  {
+    "usuarioId": 1,
+    "clubeId": 1,
+    "rodada": 38,
+    "quantidade": 15,
+    "data": "2025-12-18T16:00:50.660Z"
+  },
+  {
+    "usuarioId": 1,
+    "clubeId": 2,
+    "rodada": 38,
+    "quantidade": 22,
+    "data": "2025-12-18T16:00:50.660Z"
+  },
+  {
+    "usuarioId": 1,
+    "clubeId": 117,
+    "rodada": 38,
+    "quantidade": 10,
+    "data": "2025-12-18T16:00:50.660Z"
+  },
+  {
+    "usuarioId": 1,
+    "clubeId": 10,
+    "rodada": 38,
+    "quantidade": 10,
+    "data": "2025-12-18T16:00:50.660Z"
+  },
+  {
+    "usuarioId": 1,
+    "clubeId": 7,
+    "rodada": 38,
+    "quantidade": 17,
+    "data": "2025-12-18T16:00:50.660Z"
+  },
+  {
+    "usuarioId": 1,
+    "clubeId": 11,
+    "rodada": 38,
+    "quantidade": 10,
+    "data": "2025-12-18T16:00:50.660Z"
+  },
+  {
+    "usuarioId": 1748465950263,
+    "clubeId": 19,
+    "rodada": 38,
+    "quantidade": 51,
+    "data": "2025-12-18T16:00:50.660Z"
+  }
+]
