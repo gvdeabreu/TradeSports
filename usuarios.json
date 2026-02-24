@@ -135,5 +135,12 @@
     ],
     "historico": [],
     "transacoes": []
+  },
+  {
+    "id": "camada1",
+    "email": "camada1@test.com",
+    "nomeUsuario": "camada1user",
+    "senha": "$2b$10$/b9GFw/.CcaAfTbbM.peIOwX2NL7k4rJ9S0w4tLdXcohshpkeREzm",
+    "saldo": 1000
   }
 ]
